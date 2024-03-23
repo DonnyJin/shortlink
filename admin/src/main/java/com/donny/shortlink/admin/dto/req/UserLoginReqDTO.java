@@ -13,23 +13,15 @@
  * limitations under the License.
  */
 
-package com.donny.shortlink.admin.dao.entity;
+package com.donny.shortlink.admin.dto.req;
 
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.donny.shortlink.admin.common.database.BaseDO;
 import lombok.Data;
 
 /**
- * 用户持久层实体
+ * 用户登录请求参数
  */
 @Data
-@TableName("t_user")
-public class UserDO extends BaseDO {
-
-    /**
-     * id
-     */
-    private Long id;
+public class UserLoginReqDTO {
 
     /**
      * 用户名
@@ -40,24 +32,4 @@ public class UserDO extends BaseDO {
      * 密码
      */
     private String password;
-
-    /**
-     * 真实姓名
-     */
-    private String realName;
-
-    /**
-     * 手机号
-     */
-    private String phone;
-
-    /**
-     * 邮箱
-     */
-    private String mail;
-
-    /**
-     * 注销时间戳
-     */
-    private Long deletionTime;
 }

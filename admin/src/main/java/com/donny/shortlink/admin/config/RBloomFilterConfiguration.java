@@ -13,51 +13,26 @@
  * limitations under the License.
  */
 
-package com.donny.shortlink.admin.dao.entity;
+package com.donny.shortlink.admin.config;
 
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.donny.shortlink.admin.common.database.BaseDO;
-import lombok.Data;
+import org.redisson.api.RBloomFilter;
+import org.redisson.api.RedissonClient;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * 用户持久层实体
+ * 布隆过滤器配置
  */
-@Data
-@TableName("t_user")
-public class UserDO extends BaseDO {
+@Configuration(value = "rBloomFilterConfigurationByAdmin")
+public class RBloomFilterConfiguration {
 
     /**
-     * id
+     * 防止用户注册查询数据库的布隆过滤器
      */
-    private Long id;
-
-    /**
-     * 用户名
-     */
-    private String username;
-
-    /**
-     * 密码
-     */
-    private String password;
-
-    /**
-     * 真实姓名
-     */
-    private String realName;
-
-    /**
-     * 手机号
-     */
-    private String phone;
-
-    /**
-     * 邮箱
-     */
-    private String mail;
-
-    /**
-     * 注销时间戳
-     */
-    private Long deletionTime;
+    @Bean
+    public RBloomFilter<String> userRegisterCachePenetrationBloomFilter(RedissonClient redissonClient) {
+        RBloomFilter<String> cachePenetrationBloomFilter = redissonClient.getBloomFilter("userRegisterCachePenetrationBloomFilter");
+        cachePenetrationBloomFilter.tryInit(100000000L, 0.001);
+        return cachePenetrationBloomFilter;
+    }
 }
