@@ -27,7 +27,6 @@ public class ShortLinkGroupSortReqDTO {
      * 分组ID
      */
     private String gid;
-
     /**
      * 排序
      */
