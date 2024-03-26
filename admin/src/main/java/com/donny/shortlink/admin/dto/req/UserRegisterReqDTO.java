@@ -13,41 +13,38 @@
  * limitations under the License.
  */
 
-package com.donny.shortlink.admin.common.enums;
+package com.donny.shortlink.admin.dto.req;
 
-import com.donny.shortlink.admin.common.convention.errorcode.IErrorCode;
+import lombok.Data;
 
 /**
- * 用户错误码
+ * 用户注册请求参数
  */
-public enum UserErrorCodeEnum implements IErrorCode {
+@Data
+public class UserRegisterReqDTO {
 
-    USER_NULL("B000200", "用户记录不存在"),
+    /**
+     * 用户名
+     */
+    private String username;
 
-    USER_NAME_EXIST("B000201", "用户名已存在"),
+    /**
+     * 密码
+     */
+    private String password;
 
-    USER_EXIST("B000202", "用户记录已存在"),
+    /**
+     * 真实姓名
+     */
+    private String realName;
 
-    USER_SAVE_ERROR("B000203", "用户记录新增失败");
+    /**
+     * 手机号
+     */
+    private String phone;
 
-    private final String code;
-
-    private final String message;
-
-    UserErrorCodeEnum(String code, String message) {
-
-        this.code = code;
-
-        this.message = message;
-    }
-
-    @Override
-    public String code() {
-        return code;
-    }
-
-    @Override
-    public String message() {
-        return message;
-    }
+    /**
+     * 邮箱
+     */
+    private String mail;
 }
