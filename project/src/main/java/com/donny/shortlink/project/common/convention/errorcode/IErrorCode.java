@@ -13,22 +13,20 @@
  * limitations under the License.
  */
 
-package com.donny.shortlink.project;
-
-import org.mybatis.spring.annotation.MapperScan;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+package com.donny.shortlink.project.common.convention.errorcode;
 
 /**
- * 短链接应用
+ * 平台错误码
  */
-@SpringBootApplication
-@EnableDiscoveryClient
-@MapperScan("com.donny.shortlink.project.dao.mapper")
-public class ShortLinkApplication {
+public interface IErrorCode {
 
-    public static void main(String[] args) {
-        SpringApplication.run(ShortLinkApplication.class, args);
-    }
+    /**
+     * 错误码
+     */
+    String code();
+
+    /**
+     * 错误信息
+     */
+    String message();
 }

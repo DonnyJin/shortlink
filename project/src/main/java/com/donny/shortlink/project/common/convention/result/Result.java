@@ -13,22 +13,50 @@
  * limitations under the License.
  */
 
-package com.donny.shortlink.project;
+package com.donny.shortlink.project.common.convention.result;
 
-import org.mybatis.spring.annotation.MapperScan;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import lombok.Data;
+import lombok.experimental.Accessors;
+
+import java.io.Serial;
+import java.io.Serializable;
 
 /**
- * 短链接应用
+ * 全局返回对象
  */
-@SpringBootApplication
-@EnableDiscoveryClient
-@MapperScan("com.donny.shortlink.project.dao.mapper")
-public class ShortLinkApplication {
+@Data
+@Accessors(chain = true)
+public class Result<T> implements Serializable {
 
-    public static void main(String[] args) {
-        SpringApplication.run(ShortLinkApplication.class, args);
+    @Serial
+    private static final long serialVersionUID = 5679018624309023727L;
+
+    /**
+     * 正确返回码
+     */
+    public static final String SUCCESS_CODE = "0";
+
+    /**
+     * 返回码
+     */
+    private String code;
+
+    /**
+     * 返回消息
+     */
+    private String message;
+
+    /**
+     * 响应数据
+     */
+    private T data;
+
+    /**
+     * 请求ID
+     */
+    private String requestId;
+
+    public boolean isSuccess() {
+        return SUCCESS_CODE.equals(code);
     }
 }

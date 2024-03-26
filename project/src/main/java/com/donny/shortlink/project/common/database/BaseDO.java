@@ -13,22 +13,35 @@
  * limitations under the License.
  */
 
-package com.donny.shortlink.project;
+package com.donny.shortlink.project.common.database;
 
-import org.mybatis.spring.annotation.MapperScan;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
+import lombok.Data;
+
+import java.util.Date;
 
 /**
- * 短链接应用
+ * 数据库持久层对象基础属性
  */
-@SpringBootApplication
-@EnableDiscoveryClient
-@MapperScan("com.donny.shortlink.project.dao.mapper")
-public class ShortLinkApplication {
+@Data
+public class BaseDO {
 
-    public static void main(String[] args) {
-        SpringApplication.run(ShortLinkApplication.class, args);
-    }
+    /**
+     * 创建时间
+     */
+    @TableField(fill = FieldFill.INSERT)
+    private Date createTime;
+
+    /**
+     * 修改时间
+     */
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private Date updateTime;
+
+    /**
+     * 删除标识 0：未删除 1：已删除
+     */
+    @TableField(fill = FieldFill.INSERT)
+    private Integer delFlag;
 }

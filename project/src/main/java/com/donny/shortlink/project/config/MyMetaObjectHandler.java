@@ -13,22 +13,29 @@
  * limitations under the License.
  */
 
-package com.donny.shortlink.project;
+package com.donny.shortlink.project.config;
 
-import org.mybatis.spring.annotation.MapperScan;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
+import org.apache.ibatis.reflection.MetaObject;
+import org.springframework.stereotype.Component;
+
+import java.util.Date;
 
 /**
- * 短链接应用
+ * MyBatis-Plus 原数据自动填充类
  */
-@SpringBootApplication
-@EnableDiscoveryClient
-@MapperScan("com.donny.shortlink.project.dao.mapper")
-public class ShortLinkApplication {
+@Component
+public class MyMetaObjectHandler implements MetaObjectHandler {
 
-    public static void main(String[] args) {
-        SpringApplication.run(ShortLinkApplication.class, args);
+    @Override
+    public void insertFill(MetaObject metaObject) {
+        strictInsertFill(metaObject, "createTime", Date::new, Date.class);
+        strictInsertFill(metaObject, "updateTime", Date::new, Date.class);
+        strictInsertFill(metaObject, "delFlag", () -> 0, Integer.class);
+    }
+
+    @Override
+    public void updateFill(MetaObject metaObject) {
+        strictInsertFill(metaObject, "updateTime", Date::new, Date.class);
     }
 }
