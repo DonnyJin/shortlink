@@ -11,7 +11,7 @@ spring:
     redis:
       host: 127.0.0.1
       port: 6379
-#      password: 123456
+  #      password: 123456
   mvc:
     view:
       prefix: /templates/
@@ -41,3 +41,14 @@ mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   mapper-locations: classpath:mapper/*.xml
+
+rocketmq:
+  name-server: common-rocketmq-dev.magestack.cn:9876
+  producer:
+    group: short-link_project-service_stats-save_pg_donny22
+    topic: short-link_project-service_topic_donny22
+    send-message-timeout: 2000
+    retry-times-when-send-async-failed: 1
+    retry-times-when-send-failed: 1
+  consumer:
+    group: short-link_project-service_stats-save_cg_donny22
