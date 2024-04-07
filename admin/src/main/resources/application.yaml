@@ -31,3 +31,14 @@ short-link:
     enable: true
     time-window: 1
     max-access-count: 20
+
+rocketmq:
+  name-server: common-rocketmq-dev.magestack.cn:9876
+  producer:
+    group: short-link_project-service_stats-save_pg_donny22
+    topic: short-link_project-service_topic_donny22
+    send-message-timeout: 2000
+    retry-times-when-send-async-failed: 1
+    retry-times-when-send-failed: 1
+  consumer:
+    group: short-link_project-service_stats-save_cg_donny22
