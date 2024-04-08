@@ -1,4 +1,4 @@
-package com.donny.shortlink.admin.remote.dto.req;
+package com.donny.shortlink.project.dto.req;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
