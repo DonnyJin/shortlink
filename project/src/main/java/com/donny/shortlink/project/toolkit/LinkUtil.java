@@ -1,18 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *     http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.donny.shortlink.project.toolkit;
 
 import cn.hutool.core.date.DateUnit;
@@ -33,10 +18,11 @@ public class LinkUtil {
 
     /**
      * 获取短链接缓存有效期时间
+     *
      * @param validDate 有效期时间
      * @return 有限期时间戳
      */
-    public static long getLinkCacheValidTime(Date validDate) {
+    public static Long getLinkCacheValidTime(Date validDate) {
         return Optional.ofNullable(validDate)
                 .map(each -> DateUtil.between(new Date(), each, DateUnit.MS))
                 .orElse(DEFAULT_CACHE_VALID_TIME);
@@ -44,6 +30,7 @@ public class LinkUtil {
 
     /**
      * 获取用户真实IP
+     *
      * @param request 请求
      * @return 用户真实IP
      */
@@ -69,6 +56,7 @@ public class LinkUtil {
 
     /**
      * 获取用户访问操作系统
+     *
      * @param request 请求
      * @return 访问操作系统
      */
@@ -91,6 +79,7 @@ public class LinkUtil {
 
     /**
      * 获取用户访问浏览器
+     *
      * @param request 请求
      * @return 访问浏览器
      */
@@ -115,6 +104,7 @@ public class LinkUtil {
 
     /**
      * 获取用户访问设备
+     *
      * @param request 请求
      * @return 访问设备
      */
@@ -128,6 +118,7 @@ public class LinkUtil {
 
     /**
      * 获取用户访问网络
+     *
      * @param request 请求
      * @return 访问设备
      */
@@ -141,6 +132,7 @@ public class LinkUtil {
     /**
      * 获取原始链接中的域名
      * 如果原始链接包含 www 开头的话需要去掉
+     *
      * @param url 创建或者修改短链接的原始链接
      * @return 原始链接中的域名
      */
