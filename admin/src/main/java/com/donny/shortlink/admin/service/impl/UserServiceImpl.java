@@ -1,18 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *     http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.donny.shortlink.admin.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
@@ -23,6 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.donny.shortlink.admin.common.biz.user.UserContext;
 import com.donny.shortlink.admin.common.convention.exception.ClientException;
 import com.donny.shortlink.admin.common.convention.exception.ServiceException;
 import com.donny.shortlink.admin.common.enums.UserErrorCodeEnum;
@@ -45,13 +31,12 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static com.donny.shortlink.admin.common.constant.RedisCacheConstant.LOCK_USER_REGISTER_KEY;
 import static com.donny.shortlink.admin.common.constant.RedisCacheConstant.USER_LOGIN_KEY;
-import static com.donny.shortlink.admin.common.enums.UserErrorCodeEnum.USER_EXIST;
-import static com.donny.shortlink.admin.common.enums.UserErrorCodeEnum.USER_NAME_EXIST;
-import static com.donny.shortlink.admin.common.enums.UserErrorCodeEnum.USER_SAVE_ERROR;
+import static com.donny.shortlink.admin.common.enums.UserErrorCodeEnum.*;
 
 /**
  * 用户接口实现层
@@ -89,21 +74,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
             throw new ClientException(USER_NAME_EXIST);
         }
         RLock lock = redissonClient.getLock(LOCK_USER_REGISTER_KEY + requestParam.getUsername());
-        try {
-            if (lock.tryLock()) {
-                try {
-                    int inserted = baseMapper.insert(BeanUtil.toBean(requestParam, UserDO.class));
-                    if (inserted < 1) {
-                        throw new ClientException(USER_SAVE_ERROR);
-                    }
-                } catch (DuplicateKeyException ex) {
-                    throw new ClientException(USER_EXIST);
-                }
-                userRegisterCachePenetrationBloomFilter.add(requestParam.getUsername());
-                groupService.saveGroup(requestParam.getUsername(), "默认分组");
-                return;
-            }
+        if (!lock.tryLock()) {
             throw new ClientException(USER_NAME_EXIST);
+        }
+        try {
+            int inserted = baseMapper.insert(BeanUtil.toBean(requestParam, UserDO.class));
+            if (inserted < 1) {
+                throw new ClientException(USER_SAVE_ERROR);
+            }
+            userRegisterCachePenetrationBloomFilter.add(requestParam.getUsername());
+            groupService.saveGroup(requestParam.getUsername(), "默认分组");
+        } catch (DuplicateKeyException ex) {
+            throw new ClientException(USER_EXIST);
         } finally {
             lock.unlock();
         }
@@ -111,7 +93,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
     @Override
     public void update(UserUpdateReqDTO requestParam) {
-        // TODO 验证当前用户名是否为登录用户
+        if (!Objects.equals(requestParam.getUsername(), UserContext.getUsername())) {
+            throw new ClientException("当前登录用户修改请求异常");
+        }
         LambdaUpdateWrapper<UserDO> updateWrapper = Wrappers.lambdaUpdate(UserDO.class)
                 .eq(UserDO::getUsername, requestParam.getUsername());
         baseMapper.update(BeanUtil.toBean(requestParam, UserDO.class), updateWrapper);
