@@ -1,18 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *     http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.donny.shortlink.project.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
@@ -21,6 +6,7 @@ import cn.hutool.core.lang.UUID;
 import cn.hutool.core.text.StrBuilder;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.cloud.sentinel.custom.SentinelDataSourceHandler;
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -32,36 +18,14 @@ import com.donny.shortlink.project.common.convention.exception.ClientException;
 import com.donny.shortlink.project.common.convention.exception.ServiceException;
 import com.donny.shortlink.project.common.enums.VailDateTypeEnum;
 import com.donny.shortlink.project.config.GotoDomainWhiteListConfiguration;
-import com.donny.shortlink.project.dao.entity.LinkAccessLogsDO;
-import com.donny.shortlink.project.dao.entity.LinkAccessStatsDO;
-import com.donny.shortlink.project.dao.entity.LinkBrowserStatsDO;
-import com.donny.shortlink.project.dao.entity.LinkDeviceStatsDO;
-import com.donny.shortlink.project.dao.entity.LinkLocaleStatsDO;
-import com.donny.shortlink.project.dao.entity.LinkNetworkStatsDO;
-import com.donny.shortlink.project.dao.entity.LinkOsStatsDO;
-import com.donny.shortlink.project.dao.entity.LinkStatsTodayDO;
-import com.donny.shortlink.project.dao.entity.ShortLinkDO;
-import com.donny.shortlink.project.dao.entity.ShortLinkGotoDO;
-import com.donny.shortlink.project.dao.mapper.LinkAccessLogsMapper;
-import com.donny.shortlink.project.dao.mapper.LinkAccessStatsMapper;
-import com.donny.shortlink.project.dao.mapper.LinkBrowserStatsMapper;
-import com.donny.shortlink.project.dao.mapper.LinkDeviceStatsMapper;
-import com.donny.shortlink.project.dao.mapper.LinkLocaleStatsMapper;
-import com.donny.shortlink.project.dao.mapper.LinkNetworkStatsMapper;
-import com.donny.shortlink.project.dao.mapper.LinkOsStatsMapper;
-import com.donny.shortlink.project.dao.mapper.LinkStatsTodayMapper;
-import com.donny.shortlink.project.dao.mapper.ShortLinkGotoMapper;
-import com.donny.shortlink.project.dao.mapper.ShortLinkMapper;
+import com.donny.shortlink.project.dao.entity.*;
+import com.donny.shortlink.project.dao.mapper.*;
 import com.donny.shortlink.project.dto.biz.ShortLinkStatsRecordDTO;
 import com.donny.shortlink.project.dto.req.ShortLinkBatchCreateReqDTO;
 import com.donny.shortlink.project.dto.req.ShortLinkCreateReqDTO;
 import com.donny.shortlink.project.dto.req.ShortLinkPageReqDTO;
 import com.donny.shortlink.project.dto.req.ShortLinkUpdateReqDTO;
-import com.donny.shortlink.project.dto.resp.ShortLinkBaseInfoRespDTO;
-import com.donny.shortlink.project.dto.resp.ShortLinkBatchCreateRespDTO;
-import com.donny.shortlink.project.dto.resp.ShortLinkCreateRespDTO;
-import com.donny.shortlink.project.dto.resp.ShortLinkGroupCountQueryRespDTO;
-import com.donny.shortlink.project.dto.resp.ShortLinkPageRespDTO;
+import com.donny.shortlink.project.dto.resp.*;
 import com.donny.shortlink.project.mq.producer.ShortLinkStatsSaveProducer;
 import com.donny.shortlink.project.service.LinkStatsTodayService;
 import com.donny.shortlink.project.service.ShortLinkService;
@@ -86,29 +50,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.donny.shortlink.project.common.constant.RedisKeyConstant.GOTO_IS_NULL_SHORT_LINK_KEY;
-import static com.donny.shortlink.project.common.constant.RedisKeyConstant.GOTO_SHORT_LINK_KEY;
-import static com.donny.shortlink.project.common.constant.RedisKeyConstant.LOCK_GID_UPDATE_KEY;
-import static com.donny.shortlink.project.common.constant.RedisKeyConstant.LOCK_GOTO_SHORT_LINK_KEY;
-import static com.donny.shortlink.project.common.constant.RedisKeyConstant.SHORT_LINK_CREATE_LOCK_KEY;
-import static com.donny.shortlink.project.common.constant.RedisKeyConstant.SHORT_LINK_STATS_UIP_KEY;
-import static com.donny.shortlink.project.common.constant.RedisKeyConstant.SHORT_LINK_STATS_UV_KEY;
+import static com.donny.shortlink.project.common.constant.RedisKeyConstant.*;
 
 /**
  * 短链接接口实现层
@@ -120,6 +72,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
 
     private final RBloomFilter<String> shortUriCreateCachePenetrationBloomFilter;
     private final ShortLinkGotoMapper shortLinkGotoMapper;
+    private final ShortLinkMapper shortLinkMapper;
     private final StringRedisTemplate stringRedisTemplate;
     private final RedissonClient redissonClient;
     private final LinkAccessStatsMapper linkAccessStatsMapper;
@@ -133,11 +86,12 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
     private final LinkStatsTodayService linkStatsTodayService;
     private final ShortLinkStatsSaveProducer shortLinkStatsSaveProducer;
     private final GotoDomainWhiteListConfiguration gotoDomainWhiteListConfiguration;
+    private final SentinelDataSourceHandler sentinelDataSourceHandler;
 
     @Value("${short-link.domain.default}")
     private String createShortLinkDefaultDomain;
 
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRED)
     @Override
     public ShortLinkCreateRespDTO createShortLink(ShortLinkCreateReqDTO requestParam) {
         verificationWhitelist(requestParam.getOriginUrl());
@@ -168,7 +122,8 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                 .gid(requestParam.getGid())
                 .build();
         try {
-            baseMapper.insert(shortLinkDO);
+//            baseMapper.insert(shortLinkDO);
+            shortLinkMapper.insert(shortLinkDO);
             shortLinkGotoMapper.insert(linkGotoDO);
         } catch (DuplicateKeyException ex) {
             // 首先判断是否存在布隆过滤器，如果不存在直接新增
@@ -177,6 +132,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
             }
             throw new ServiceException(String.format("短链接：%s 生成重复", fullShortUrl));
         }
+        // 将短链接新增到缓存中进行预热
         stringRedisTemplate.opsForValue().set(
                 String.format(GOTO_SHORT_LINK_KEY, fullShortUrl),
                 requestParam.getOriginUrl(),
@@ -306,9 +262,11 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
         } else {
             RReadWriteLock readWriteLock = redissonClient.getReadWriteLock(String.format(LOCK_GID_UPDATE_KEY, requestParam.getFullShortUrl()));
             RLock rLock = readWriteLock.writeLock();
-            if (!rLock.tryLock()) {
-                throw new ServiceException("短链接正在被访问，请稍后再试...");
-            }
+//            if (!rLock.tryLock()) {
+//                throw new ServiceException("短链接正在被访问，请稍后再试...");
+//            }
+            // 通过RocketMQ削峰后不需要直接抛出异常了, 因为削峰以后稍微阻塞一下即可拿到写锁, 很丝滑
+            rLock.lock();
             try {
                 LambdaUpdateWrapper<ShortLinkDO> linkUpdateWrapper = Wrappers.lambdaUpdate(ShortLinkDO.class)
                         .eq(ShortLinkDO::getFullShortUrl, requestParam.getFullShortUrl())
@@ -419,6 +377,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                 rLock.unlock();
             }
         }
+        // 数据库缓存一致性，先更新数据库再删除缓存
         if (!Objects.equals(hasShortLinkDO.getValidDateType(), requestParam.getValidDateType())
                 || !Objects.equals(hasShortLinkDO.getValidDate(), requestParam.getValidDate())) {
             stringRedisTemplate.delete(String.format(GOTO_SHORT_LINK_KEY, requestParam.getFullShortUrl()));
@@ -466,6 +425,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
         String originalLink = stringRedisTemplate.opsForValue().get(String.format(GOTO_SHORT_LINK_KEY, fullShortUrl));
         if (StrUtil.isNotBlank(originalLink)) {
             ShortLinkStatsRecordDTO statsRecord = buildLinkStatsRecordAndSetUser(fullShortUrl, request, response);
+            // 放入消息队列
             shortLinkStats(fullShortUrl, null, statsRecord);
             ((HttpServletResponse) response).sendRedirect(originalLink);
             return;
@@ -480,8 +440,11 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
             ((HttpServletResponse) response).sendRedirect("/page/notfound");
             return;
         }
-        RLock lock = redissonClient.getLock(String.format(LOCK_GOTO_SHORT_LINK_KEY, fullShortUrl));
-        lock.lock();
+        // 分布式锁换成读写锁
+//        RLock lock = redissonClient.getLock(String.format(LOCK_GOTO_SHORT_LINK_KEY, fullShortUrl));
+        RReadWriteLock readWriteLock = redissonClient.getReadWriteLock(String.format(LOCK_GID_UPDATE_KEY, fullShortUrl));
+        RLock rlock = readWriteLock.readLock();
+        rlock.lock();
         try {
             originalLink = stringRedisTemplate.opsForValue().get(String.format(GOTO_SHORT_LINK_KEY, fullShortUrl));
             if (StrUtil.isNotBlank(originalLink)) {
@@ -518,7 +481,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
             shortLinkStats(fullShortUrl, shortLinkDO.getGid(), statsRecord);
             ((HttpServletResponse) response).sendRedirect(shortLinkDO.getOriginUrl());
         } finally {
-            lock.unlock();
+            rlock.unlock();
         }
     }
 
@@ -637,7 +600,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
 
     private void verificationWhitelist(String originUrl) {
         Boolean enable = gotoDomainWhiteListConfiguration.getEnable();
-        if (enable == null || !enable) {
+        if (enable == null || Boolean.FALSE.equals(enable)) {
             return;
         }
         String domain = LinkUtil.extractDomain(originUrl);
@@ -646,7 +609,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
         }
         List<String> details = gotoDomainWhiteListConfiguration.getDetails();
         if (!details.contains(domain)) {
-            throw new ClientException("演示环境为避免恶意攻击，请生成以下网站跳转链接：" + gotoDomainWhiteListConfiguration.getNames());
+            throw new ClientException("为避免恶意攻击，请生成以下网站跳转链接：" + gotoDomainWhiteListConfiguration.getNames());
         }
     }
 }
