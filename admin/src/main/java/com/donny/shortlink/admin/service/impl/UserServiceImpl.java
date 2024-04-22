@@ -2,7 +2,6 @@ package com.donny.shortlink.admin.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.lang.UUID;
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -32,6 +31,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static com.donny.shortlink.admin.common.constant.RedisCacheConstant.LOCK_USER_REGISTER_KEY;
