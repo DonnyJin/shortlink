@@ -28,6 +28,7 @@ import java.util.List;
  */
 @RestController(value = "shortLinkControllerByAdmin")
 @RequiredArgsConstructor
+@Deprecated
 public class ShortLinkController {
 
     private final ShortLinkActualRemoteService shortLinkActualRemoteService;
