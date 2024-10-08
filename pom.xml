@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.nageoffer.shortlink</groupId>
+    <groupId>com.donny.shortlink</groupId>
     <artifactId>shortlink-all</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -17,7 +17,7 @@
     </modules>
 
     <properties>
-        <java.version>17</java.version>
+        <java.version>18</java.version>
         <spring-boot.version>3.0.7</spring-boot.version>
         <spring-cloud.version>2022.0.3</spring-cloud.version>
         <spring-cloud-alibaba.version>2022.0.0.0-RC2</spring-cloud-alibaba.version>
@@ -27,12 +27,13 @@
         <fastjson2.version>2.0.36</fastjson2.version>
         <mybatis-plus.version>3.5.3.1</mybatis-plus.version>
         <dozer-core.version>6.5.2</dozer-core.version>
-        <hutool-all.version>5.8.20</hutool-all.version>
-        <redisson.version>3.21.3</redisson.version>
+        <hutool-all.version>5.8.27</hutool-all.version>
+        <redisson.version>3.27.2</redisson.version>
         <guava.version>30.0-jre</guava.version>
         <jsoup.version>1.15.3</jsoup.version>
         <easyexcel.version>3.1.3</easyexcel.version>
         <spotless-maven-plugin.version>2.22.1</spotless-maven-plugin.version>
+        <rocketmq-spring-boot-starter.version>2.2.3</rocketmq-spring-boot-starter.version>
     </properties>
 
     <dependencies>
@@ -96,6 +97,18 @@
                 <groupId>com.github.dozermapper</groupId>
                 <artifactId>dozer-core</artifactId>
                 <version>${dozer-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-test</artifactId>
+                <version>3.1.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.rocketmq</groupId>
+                <artifactId>rocketmq-spring-boot-starter</artifactId>
+                <version>${rocketmq-spring-boot-starter.version}</version>
             </dependency>
 
             <dependency>
